@@ -54,6 +54,7 @@ wss.on("connection",function(conn){
                     userlist.push(currentUser);
                 }
                 conn.send(JSON.stringify(actionResult));
+                break;
             case "register":
                 actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.passWord);
                 if(actionResult.success){

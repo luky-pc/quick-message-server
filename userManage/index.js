@@ -28,7 +28,7 @@ let userManager={
     },
     login:(phoneNumber,passWord)=>{
         let actionType = "login",
-            user = this.findUserByPhoneNumber(phoneNumber);
+            user = userManager.findUserByPhoneNumber(phoneNumber);
         if(!user){
             return {
                 success:false,
