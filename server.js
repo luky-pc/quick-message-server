@@ -21,7 +21,7 @@ wss.on("connection",function(conn){
             return false;
         }
         switch (message.actionType) {
-            case "sendMessage":
+            case actionTypes.SEND_MESSAGE:
                 currentUser = userlist.find((user) => {
                     return user.id == message.from;
                 });
@@ -50,7 +50,7 @@ wss.on("connection",function(conn){
                     }));
                 }
                 break;
-            case "login":
+            case actionTypes.LOGIN:
                 actionResult=userManager.login(message.phoneNumber,message.passWord);
                 if(actionResult.success){
                     let user=userManager.findUserByPhoneNumber(message.phoneNumber);
@@ -64,7 +64,7 @@ wss.on("connection",function(conn){
                 }
                 conn.send(JSON.stringify(actionResult));
                 break;
-            case "register":
+            case actionTypes.REGISTER_USER:
                 actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.passWord,message.nickName);
                 if(actionResult.success){
                     let user = actionResult.user;
@@ -77,9 +77,14 @@ wss.on("connection",function(conn){
                 }
                 conn.send(JSON.stringify(actionResult));
                 break;
-            case "searchUserByPhoneNumber":
-                actionResult=userManager.findUserByPhoneNumber(message.phoneNumber);
-
+            case actionTypes.SEARCH_USER:
+                let user=userManager.findUserByPhoneNumber(message.phoneNumber);
+                if(user) {
+                    actionResult = createApiResult(message.actionType, true,"查找到已注册用户。", {user});
+                }else{
+                    actionResult = createApiResult(message.actionType, true,"未能找到用户。", {userList:user});
+                }
+                conn.send(JSON.stringify(actionResult));
         }
     });
     conn.on("close", function (code, reason) {
