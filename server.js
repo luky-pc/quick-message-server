@@ -1,17 +1,25 @@
 import userManager from "./userManage";
+import {createApiResult} from "./util/commonFunctions";
+import {actionTypes} from "./util/actionTypes";
+
 var WebSocketServer = require("ws").Server;
 
 var userlist = [], //用户列表
     currentUser, //当前用户
     contactUser, //信息接收用户
     message,
-wss=new WebSocketServer({port:8001}); //消息体
+    wss=new WebSocketServer({port:8001}); //消息体
 console.log("开始建立连接...");
 wss.on("connection",function(conn){
     conn.on("message", function (str) {
         let actionResult;
         console.log("收到的信息为:"+str);
         message=JSON.parse(str);
+        if(actionTypes.checkAction(message.actionType)){
+            console.log("不支持的操作。");
+            conn.send(JSON.stringify(createApiResult(message.actionType,false,"不支持的操作")));
+            return false;
+        }
         switch (message.actionType) {
             case "sendMessage":
                 currentUser = userlist.find((user) => {
@@ -52,13 +60,14 @@ wss.on("connection",function(conn){
                         conn
                     };
                     userlist.push(currentUser);
+                    actionResult.user=user;
                 }
                 conn.send(JSON.stringify(actionResult));
                 break;
             case "register":
-                actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.passWord);
+                actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.passWord,message.nickName);
                 if(actionResult.success){
-                    let user = userManager.findUserByPhoneNumber(message.phoneNumber);
+                    let user = actionResult.user;
                     currentUser = {
                         id: user.id,
                         isRead: true,
@@ -68,6 +77,9 @@ wss.on("connection",function(conn){
                 }
                 conn.send(JSON.stringify(actionResult));
                 break;
+            case "searchUserByPhoneNumber":
+                actionResult=userManager.findUserByPhoneNumber(message.phoneNumber);
+
         }
     });
     conn.on("close", function (code, reason) {
