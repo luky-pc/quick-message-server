@@ -19,10 +19,9 @@ let createApiResult=(actionType="",success=true,message="操作成功",addition=
         success = false;
         message = "参数错误，请检测接口调用处参数传递。";
     }
-    return {
+    return Object.assign({
         success,
-        message,
-        ...addition
-    }
+        message
+    },addition)
 };
 export {createApiResult};
