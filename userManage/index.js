@@ -15,10 +15,13 @@ let userManager={
         let actionType=actionTypes.REGISTER_USER,
             newUser={phoneNumber,password,nickName,id:id++},
             validatePhoneNumber = checkRuleManager.checkPhoneNumber(phoneNumber),
-            validatePassword = checkRuleManager.checkPassword(password);
-        if(validatePassword.success&&validatePhoneNumber.success){
+            validatePassword = checkRuleManager.checkPassword(password),
+            repeated=userList.find((user)=>{return user.phoneNumber===phoneNumber;});
+        if(validatePassword.success&&validatePhoneNumber.success&&!repeated){
             userList.push(newUser);/**TODO:记录用户信息到数据库**/
             return createApiResult(actionType,true,"注册成功",{user:newUser});
+        }else if(repeated) {
+            return createApiResult(actionType,false,"手机号已被注册。");
         }else if(!validatePhoneNumber.success){
             return createApiResult(actionType,false,validatePhoneNumber.message);
         }else{
