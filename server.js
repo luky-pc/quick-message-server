@@ -4,8 +4,7 @@ import {actionTypes} from "./util/actionTypes";
 
 var WebSocketServer = require("ws").Server;
 
-var userlist = [], //用户列表
-    currentUser, //当前用户
+var currentUser, //当前用户
     contactUser, //信息接收用户
     message,
     wss=new WebSocketServer({port:8001}); //消息体
@@ -22,28 +21,18 @@ wss.on("connection",function(conn){
         }
         switch (message.actionType) {
             case actionTypes.SEND_MESSAGE:
-                currentUser = userlist.find((user) => {
-                    return user.id == message.from;
-                });
-                contactUser = userlist.find((user) => {
-                    return user.id == message.to;
-                });
-                if (!currentUser && message.from) {//无当前用户,记录当前用户登录状态
-                    currentUser = {
-                        id: message.from,
-                        ready: true,
-                        conn: conn
-                    };
-                    userlist.push(currentUser);
-                }
-                if (contactUser) {//信息接收用户已登录 发送登录消息
-                    contactUser.conn.send(str);
+                currentUser = userManager.findUserById(message.from);
+                contactUser = userManager.findUserById(message.to);
+
+                if (contactUser&&contactUser.online) {//信息接收用户已登录 转发聊天消息
+                    console.log("转发消息到用户："+contactUser.nickName+contactUser.online+contactUser.conn);
+                    contactUser.conn.send(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE,true,"",{message})));
                 } else {
-                    console.log(new Date() + ":+" + currentUser);
-                    currentUser && currentUser.conn.send(JSON.stringify({
+                    currentUser.conn.send(JSON.stringify({
+                        success:true,
                         actionType:message.actionType,
-                        from: "17298566363",
-                        to: "666546",
+                        from: contactUser.id,
+                        to: currentUser.id,
                         isRead: false,
                         content: "当前用户未登录，请稍后重试！",
                         time: (new Date()).getTime()
@@ -51,32 +40,11 @@ wss.on("connection",function(conn){
                 }
                 break;
             case actionTypes.LOGIN:
-                actionResult=userManager.login(message.phoneNumber,message.password);
-                if(actionResult.success){
-                    let user=userManager.findUserByPhoneNumber(message.phoneNumber);
-                    currentUser={
-                        id:user.id,
-                        phoneNumber:user.phoneNumber,
-                        isRead:true,
-                        conn
-                    };
-                    userlist.push(currentUser);
-                    actionResult.user=user;
-                }
+                actionResult=userManager.login(message.phoneNumber,message.password,conn);
                 conn.send(JSON.stringify(actionResult));
                 break;
             case actionTypes.REGISTER_USER:
-                actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.password,message.nickName);
-                if(actionResult.success){
-                    let user = actionResult.user;
-                    currentUser = {
-                        id: user.id,
-                        phoneNumber:user.phoneNumber,
-                        isRead: true,
-                        conn
-                    };
-                    userlist.push(currentUser);
-                }
+                actionResult=userManager.registerUserByPhoneNumber(message.phoneNumber,message.password,message.nickName,conn);
                 conn.send(JSON.stringify(actionResult));
                 break;
             case actionTypes.SEARCH_USER:
@@ -89,14 +57,16 @@ wss.on("connection",function(conn){
                 conn.send(JSON.stringify(actionResult));
                 break;
             case actionTypes.ADD_CONTACT:
+                currentUser=userManager.findUserByPhoneNumber(message.userPhoneNumber);
                 actionResult=userManager.addContact(message.userPhoneNumber,message.phoneNumber);
-                conn.send(JSON.stringify(actionResult));
+                console.log("发起用户："+currentUser.nickName+currentUser.conn);
+                currentUser.conn.send(JSON.stringify(actionResult));
                 if(actionResult.success){//添加好友成功后，尝试通知被添加人
-                    contactUser = userlist.find((user) => {
-                        return user.phoneNumber === message.phoneNumber;
-                    });
-                    if (contactUser) {//信息接收用户已登录 发送登录消息
-                        contactUser.conn.send(JSON.stringify(createApiResult(actionTypes.ADD_CONTACT, true, "已添加 " + contact.nickName + " 为好友", {contact: userManager.getUserBasicInfo(userManager.findUserByPhoneNumber(message.userPhoneNumber))})));
+                    contactUser = userManager.findUserByPhoneNumber(message.phoneNumber);
+                    if (contactUser.online) {//信息接收用户已登录 发送登录消息
+                        currentUser=userManager.getUserBasicInfo(currentUser);
+                        actionResult=createApiResult(actionTypes.ADD_CONTACT, true, currentUser.nickName +"已添加您为好友", {contact: currentUser});
+                        contactUser.conn.send(JSON.stringify(actionResult));
                     }
                 }
                 break;

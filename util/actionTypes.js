@@ -8,6 +8,7 @@ let actionTypes={
     RECEIVE_REGISTER_RESULT: "receiveRegisterResult",//获取用户注册结果
     LOGIN:"login",//用户登录
     SEARCH_USER:"searchUser",//查找用户
+    PING:"ping",
     ADD_CONTACT:"addContact",//添加联系人
     checkAction:(actionType)=>{//检测是否合法操作
         for(let x in actionTypes){

@@ -8,16 +8,17 @@ import checkRuleManager from "../checkRuleManage";
 import {actionTypes} from "../util/actionTypes";
 import {createApiResult,clone} from "../util/commonFunctions";
 
-let userList=[{id:10,phoneNumber:"18180874439",nickName:"十一",password:"123"}];//临时用户数据存放，后续考虑使用数据库存放
+let userList=[{id:10,phoneNumber:"18180874439",nickName:"十一",password:"123",online:false}];//临时用户数据存放，后续考虑使用数据库存放
 let id=0;
 let userManager={
-    registerUserByPhoneNumber:(phoneNumber,password,nickName)=>{//通过手机号注册用户
+    registerUserByPhoneNumber:(phoneNumber,password,nickName,conn)=>{//通过手机号注册用户,注册成功时，记录当前用户连接
         let actionType=actionTypes.REGISTER_USER,
-            newUser={phoneNumber,password,nickName,id:id++},
+            newUser,
             validatePhoneNumber = checkRuleManager.checkPhoneNumber(phoneNumber),
             validatePassword = checkRuleManager.checkPassword(password),
             repeated=userList.find((user)=>{return user.phoneNumber===phoneNumber;});
         if(validatePassword.success&&validatePhoneNumber.success&&!repeated){
+            newUser={phoneNumber,password,nickName,id:id++,conn,online:true};
             userList.push(newUser);/**TODO:记录用户信息到数据库**/
             return createApiResult(actionType,true,"注册成功",{user:newUser});
         }else if(repeated) {
@@ -28,7 +29,7 @@ let userManager={
             return createApiResult(actionType,false,validatePassword.message);
         }
     },
-    login:(phoneNumber,password)=>{//登录操作
+    login:(phoneNumber,password,conn)=>{//登录操作,登录成功时记录当前用户连接
         let actionType = "login",
             user = userManager.findUserByPhoneNumber(phoneNumber);
         if (!user) {
@@ -36,8 +37,15 @@ let userManager={
         } else if (user.password !== password) {
             return createApiResult(actionType, false, "用户名或密码错误请重试。");
         } else {
+            user.online=true;
+            user.conn=conn;
             return createApiResult(actionType, true, "登陆成功。", {user});
         }
+    },
+    findUserById:(id)=>{//通过用户id 查找用户，返回用户联系人信息
+        return userList.find((user)=>{
+            return user.id===id;
+        });
     },
     findUserByPhoneNumber:(phoneNumber)=>{//通过手机号查找用户,返回联系人列表
         return userList.find((user)=>{
