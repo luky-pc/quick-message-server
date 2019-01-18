@@ -36,9 +36,9 @@ let checkRuleManager={
             }
         }
     },
-    checkPassword: (passWord) => {
+    checkPassword: (password) => {
         let reg = /^[a-zA-Z0-9\-_+=@#$]{0,16}$/;//允许输入包含字母，数字及特殊符号-_+=@#$共计最长16个字符
-        if (inputCheck(reg, passWord)) {
+        if (inputCheck(reg, password)) {
             return {
                 success: true,
                 message: "输入合法。"

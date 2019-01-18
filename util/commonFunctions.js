@@ -20,8 +20,27 @@ let createApiResult=(actionType="",success=true,message="操作成功",addition=
         message = "参数错误，请检测接口调用处参数传递。";
     }
     return Object.assign({
+        actionType,
         success,
         message
     },addition)
 };
-export {createApiResult};
+/**
+ * 深拷贝
+ * @param object
+ * @returns {{}}
+ */
+let clone=(object)=>{
+    let newObject = {};
+    for (let key in object) {
+        if (objectCheck.isObject(object[key])) {
+            newObject[key] = clone(object[key]);
+        } else if (objectCheck.isArray(object[key])) {
+            newObject[key] = [].push(...object[key]);
+        } else {
+            newObject[key] = object[key];
+        }
+    }
+    return newObject;
+};
+export {clone,createApiResult};
