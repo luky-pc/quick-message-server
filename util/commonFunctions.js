@@ -36,7 +36,7 @@ let clone=(object)=>{
         if (objectCheck.isObject(object[key])) {
             newObject[key] = clone(object[key]);
         } else if (objectCheck.isArray(object[key])) {
-            newObject[key] = [].push(...object[key]);
+            newObject[key] = [...object[key]];
         } else {
             newObject[key] = object[key];
         }

@@ -14,29 +14,26 @@ wss.on("connection",function(conn){
         let actionResult,user;
         console.log("收到的信息为:"+str);
         message=JSON.parse(str);
+        currentUser = userManager.findUserByPhoneNumber(message.currentUserPhoneNumber);
+        currentUser&&currentUser.updateUserConn(conn);
         if(!actionTypes.checkAction(message.actionType)){
-            console.log("不支持的操作。");
             conn.send(JSON.stringify(createApiResult(message.actionType,false,"不支持的操作")));
             return false;
         }
         switch (message.actionType) {
             case actionTypes.SEND_MESSAGE:
-                currentUser = userManager.findUserById(message.from);
                 contactUser = userManager.findUserById(message.to);
-
                 if (contactUser&&contactUser.online) {//信息接收用户已登录 转发聊天消息
-                    console.log("转发消息到用户："+contactUser.nickName+contactUser.online+contactUser.conn);
-                    contactUser.conn.send(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE,true,"",{message})));
+                    console.log("转发消息到用户：" + contactUser.nickName + contactUser.online + contactUser.conn);
+                    contactUser.sendMessage(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE, true, "", {message})));
                 } else {
-                    currentUser.conn.send(JSON.stringify({
-                        success:true,
-                        actionType:message.actionType,
+                    currentUser.sendMessage(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE,true,"",{
                         from: contactUser.id,
                         to: currentUser.id,
                         isRead: false,
                         content: "当前用户未登录，请稍后重试！",
                         time: (new Date()).getTime()
-                    }));
+                    })));
                 }
                 break;
             case actionTypes.LOGIN:
@@ -57,16 +54,17 @@ wss.on("connection",function(conn){
                 conn.send(JSON.stringify(actionResult));
                 break;
             case actionTypes.ADD_CONTACT:
-                currentUser=userManager.findUserByPhoneNumber(message.userPhoneNumber);
-                actionResult=userManager.addContact(message.userPhoneNumber,message.phoneNumber);
-                console.log("发起用户："+currentUser.nickName+currentUser.conn);
-                currentUser.conn.send(JSON.stringify(actionResult));
-                if(actionResult.success){//添加好友成功后，尝试通知被添加人
+                actionResult = currentUser.addContact(message.phoneNumber);
+                console.log("发起用户：" + currentUser.nickName + currentUser.conn);
+                currentUser.sendMessage(JSON.stringify(actionResult));
+                if (actionResult.success) {//添加好友成功后，尝试通知被添加人
                     contactUser = userManager.findUserByPhoneNumber(message.phoneNumber);
-                    if (contactUser.online) {//信息接收用户已登录 发送登录消息
-                        currentUser=userManager.getUserBasicInfo(currentUser);
-                        actionResult=createApiResult(actionTypes.ADD_CONTACT, true, currentUser.nickName +"已添加您为好友", {contact: currentUser});
-                        contactUser.conn.send(JSON.stringify(actionResult));
+                    currentUser = currentUser.getUserBasicInfo();
+                    actionResult = createApiResult(actionTypes.ADD_CONTACT, true, currentUser.nickName + "已添加您为好友", {contact: currentUser});
+                    if (contactUser.online && contactUser.conn) {//信息接收用户已登录 发送登录消息
+                        contactUser.sendMessage(JSON.stringify(actionResult));
+                    }else{
+                        contactUser.addToUnsentMessage(JSON.stringify(actionResult));
                     }
                 }
                 break;
