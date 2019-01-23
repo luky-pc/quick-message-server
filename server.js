@@ -26,7 +26,7 @@ wss.on("connection",function(conn){
                 if (contactUser&&contactUser.online) {//信息接收用户已登录 转发聊天消息
                     console.log("转发消息到用户：" + contactUser.nickName + contactUser.online + contactUser.conn);
                     contactUser.sendMessage(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE, true, "", {message})));
-                } else {
+                } else if(contactUser){
                     currentUser.sendMessage(JSON.stringify(createApiResult(actionTypes.SEND_MESSAGE,true,"",{
                         from: contactUser.id,
                         to: currentUser.id,
@@ -34,6 +34,8 @@ wss.on("connection",function(conn){
                         content: "当前用户未登录，请稍后重试！",
                         time: (new Date()).getTime()
                     })));
+                } else{
+                    console.log("未找到id为"+message.to+"的用户");
                 }
                 break;
             case actionTypes.LOGIN:
