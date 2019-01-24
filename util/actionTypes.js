@@ -9,6 +9,8 @@ let actionTypes={
     LOGIN:"login",//用户登录
     SEARCH_USER:"searchUser",//查找用户
     PING:"ping",
+    REQUEST_CONTACT_LIST:"requestContactList",//请求联系人列表
+    OFFLINE:"offline",//用户未登录状态
     ADD_CONTACT:"addContact",//添加联系人
     checkAction:(actionType)=>{//检测是否合法操作
         for(let x in actionTypes){

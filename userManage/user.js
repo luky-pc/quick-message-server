@@ -16,6 +16,7 @@ let defaultObj = {
     password: "",
     online: false,
     conn: undefined,
+    contactList:[],
     unsent: []//待发送信息，因用户未登录或其他原因导致未发送的信息
 };
 
@@ -36,6 +37,9 @@ class User {
         return {phoneNumber, id, nickName};
     }
 
+    getContactList() {//获取联系人列表
+        return this.contactList;
+    }
     addContact(contactPhoneNumber) {//通过手机号，添加用户的好友关系
         let sponsor = this,
             contact = userManager.findUserByPhoneNumber(contactPhoneNumber),
