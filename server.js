@@ -20,7 +20,7 @@ wss.on("connection",function(conn){
             conn.send(JSON.stringify(createApiResult(message.actionType,false,"不支持的操作")));
             return false;
         }
-        if(message.actionType!==actionTypes.LOGIN&&message.actionType!==actionTypes.REGISTER_USER&&!currentUser){
+        if(message.actionType!==actionTypes.LOGIN&&message.actionType!==actionTypes.REGISTER_USER&&(!currentUser||!currentUser.online)){
             conn.send(JSON.stringify(createApiResult(actionTypes.OFFLINE,true,"用户未登录")));
         }
         switch (message.actionType) {
