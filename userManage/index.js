@@ -21,7 +21,7 @@ let userManager={
         if(validatePassword.success&&validatePhoneNumber.success&&!repeated){
             newUser=new User({phoneNumber,password,nickName,id:id++,conn,online:true});
             userList.push(newUser);/**TODO:记录用户信息到数据库**/
-            return createApiResult(actionType,true,"注册成功",{user:newUser});
+            return createApiResult(actionType,true,"注册成功",{user:newUser.getUserBasicInfo()});
         }else if(repeated) {
             return createApiResult(actionType,false,"手机号已被注册。");
         }else if(!validatePhoneNumber.success){
@@ -39,7 +39,7 @@ let userManager={
             return createApiResult(actionType, false, "用户名或密码错误请重试。");
         } else {
             user.reconnect(conn);
-            return createApiResult(actionType, true, "登陆成功。", {user});
+            return createApiResult(actionType, true, "登陆成功。", {user:user.getUserBasicInfo()});
         }
     },
     findUserById:(id)=>{//通过用户id 查找用户，返回用户联系人信息
