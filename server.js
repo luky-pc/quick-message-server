@@ -20,8 +20,10 @@ wss.on("connection",function(conn){
             conn.send(JSON.stringify(createApiResult(message.actionType,false,"不支持的操作")));
             return false;
         }
+        currentUser&&console.log("online: "+currentUser.online);
         if(message.actionType!==actionTypes.LOGIN&&message.actionType!==actionTypes.REGISTER_USER&&(!currentUser||!currentUser.online)){
             conn.send(JSON.stringify(createApiResult(actionTypes.OFFLINE,true,"用户未登录")));
+            return false;
         }
         switch (message.actionType) {
             case actionTypes.SEND_MESSAGE:
@@ -74,8 +76,7 @@ wss.on("connection",function(conn){
                 }
                 break;
             case actionTypes.REQUEST_CONTACT_LIST://返回用户联系人列表
-                currentUser.sendMessage(createApiResult(message.actionType, true,"",{contactList:currentUser.getContactList()}));
-                console.log("返回联系人列表： "+JSON.stringify(createApiResult(message.actionType, true,"",{contactList:currentUser.getContactList()})));
+                conn.send(JSON.stringify(createApiResult(message.actionType, true,"",{contactList:currentUser.getContactList()})));
                 break;
         }
     });

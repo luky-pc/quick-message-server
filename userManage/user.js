@@ -19,7 +19,7 @@ let defaultObj = {
     contactList:[],
     unsent: []//待发送信息，因用户未登录或其他原因导致未发送的信息
 };
-
+let idSeed=0;
 class User {
     constructor(basic = defaultObj) {
         let obj=clone(defaultObj);
@@ -29,6 +29,7 @@ class User {
         for (let x in obj) {
             this[x] = obj[x];
         }
+        this.id=idSeed++;
         console.log([]+"unsent"+obj.unsent)
     }
 
@@ -45,7 +46,9 @@ class User {
             contact = userManager.findUserByPhoneNumber(contactPhoneNumber),
             sponsorCopy = this.getUserBasicInfo(),
             contactCopy = contact.getUserBasicInfo();
-        if (contact && !(sponsor.contactList && sponsor.contactList.find((item) => {
+        if(contact.id===this.id){
+            return createApiResult(actionTypes.ADD_CONTACT, false, "不能添加自己为好友", {contact});
+        } else if (contact && !(sponsor.contactList && sponsor.contactList.find((item) => {
                 return item.id === contact.id
             }))) {
             sponsor.contactList ? sponsor.contactList.push(contactCopy) : (sponsor.contactList = [contactCopy]);
