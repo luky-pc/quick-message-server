@@ -38,7 +38,8 @@ let userManager={
         } else if (user.password !== password) {
             return createApiResult(actionType, false, "用户名或密码错误请重试。");
         } else {
-            user.reconnect(conn);
+            user.updateUserConn(conn);
+            user.online=true;
             return createApiResult(actionType, true, "登陆成功。", {user:user.getUserBasicInfo()});
         }
     },

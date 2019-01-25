@@ -61,7 +61,6 @@ class User {
             this.conn.send(messageStr);
         } catch (e) {
             this.conn = undefined;
-            this.online = false;
             this.addToUnsentMessage(messageStr);
         }
     }
@@ -79,13 +78,11 @@ class User {
 
     reconnect(conn) {
         this.conn = conn;
-        this.online = false;
         this.dealWithUnsentMessage();
     }
 
     updateUserConn(conn) {
         this.conn = conn;
-        this.online = true;
         this.dealWithUnsentMessage();
     }
 }
