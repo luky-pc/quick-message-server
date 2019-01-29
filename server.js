@@ -1,7 +1,7 @@
 import userManager from "./userManage";
 import {createApiResult} from "./util/commonFunctions";
 import {actionTypes} from "./util/actionTypes";
-
+import dbManage from "./database/connect";
 var WebSocketServer = require("ws").Server;
 
 var currentUser, //当前用户
